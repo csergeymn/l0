@@ -271,6 +271,7 @@ func saveOrderToDB(ctx context.Context, order *models.Order) (err error) {
         INSERT INTO deliveries (
             order_uid, name, phone, zip, city, address, region, email
         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+        ON CONFLICT (order_uid) DO NOTHING;
     `,
 		order.OrderUID, order.Delivery.Name, order.Delivery.Phone, order.Delivery.Zip,
 		order.Delivery.City, order.Delivery.Address, order.Delivery.Region, order.Delivery.Email,
@@ -285,6 +286,7 @@ func saveOrderToDB(ctx context.Context, order *models.Order) (err error) {
             order_uid, transaction, request_id, currency, provider, amount,
             payment_dt, bank, delivery_cost, goods_total, custom_fee
         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+        ON CONFLICT (order_uid) DO NOTHING;
     `,
 		order.OrderUID, order.Payment.Transaction, order.Payment.RequestID,
 		order.Payment.Currency, order.Payment.Provider, order.Payment.Amount,
@@ -302,6 +304,7 @@ func saveOrderToDB(ctx context.Context, order *models.Order) (err error) {
                 order_uid, chrt_id, track_number, price, rid,
                 name, sale, size, total_price, nm_id, brand, status
             ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+            ON CONFLICT (order_uid, chrt_id) DO NOTHING;
         `,
 			order.OrderUID, item.ChrtID, item.TrackNumber, item.Price, item.RID,
 			item.Name, item.Sale, item.Size, item.TotalPrice, item.NmID,
