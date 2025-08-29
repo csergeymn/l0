@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Order Lookup</title>
+    <style>
+        body {
+            background: #f4f6f8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 40px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .form-container {
+            background: #fff;
+            padding: 2rem 3rem;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-bottom: 1.2rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #007BFF;
+            color: white;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .order-block {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section h2 {
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 0.3rem;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .section p {
+            margin: 0.2rem 0;
+            color: #444;
+        }
+
+        .items-list {
+            padding-left: 1rem;
+        }
+
+        .item {
+            margin-bottom: 1rem;
+            padding-left: 1rem;
+            border-left: 3px solid #007BFF;
+        }
+
+        .item p {
+            margin: 0.2rem 0;
+        }
+        .alert {
+            padding: 1rem 1.2rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .alert-error {
+            background-color: #fdecea;
+            color: #a94442;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h1>Order Lookup</h1>
+    <form id="orderForm">
+        <label for="orderId">Enter Order ID</label>
+        <input type="text" id="orderId" name="orderId" placeholder="e.g., b563feb7b2b84b6test" required />
+        <button type="submit">Submit</button>
+    </form>
+    <div id="errorMsg" style="display:none;"></div>
+</div>
+
+<div id="responseContainer" class="order-block" style="display: none;"></div>
+
+<script>
+    document.getElementById("orderForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const orderId = document.getElementById("orderId").value;
+        const errorMsg = document.getElementById("errorMsg");
+        const container = document.getElementById("responseContainer");
+
+        errorMsg.textContent = "";
+        container.style.display = "none";
+        container.innerHTML = "";
+
+        fetch("/order/" + orderId + "/", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+            .then(async (response) => {
+                console.log(response);
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(text || "Request failed");
+                }
+                return response.json();
+            })
+            .then((data) => {
+                renderOrder(data);
+            })
+            .catch((err) => {
+                const errorMsg = document.getElementById("errorMsg");
+                errorMsg.style.display = "block";
+                errorMsg.innerHTML = `
+        <div class="alert alert-error">
+            <strong>Error:</strong> ${err.message}
+        </div>
+    `;
+            });
+
+
+
+        function renderOrder(data) {
+            const container = document.getElementById("responseContainer");
+            container.style.display = "block";
+
+            container.innerHTML = `
+          <div class="section">
+            <h2>Order Info</h2>
+            <p><strong>Order UID:</strong> ${data.order_uid}</p>
+            <p><strong>Track Number:</strong> ${data.track_number}</p>
+            <p><strong>Entry:</strong> ${data.entry}</p>
+            <p><strong>Locale:</strong> ${data.locale}</p>
+            <p><strong>Date Created:</strong> ${data.date_created}</p>
+          </div>
+
+          <div class="section">
+            <h2>Delivery</h2>
+            <p><strong>Name:</strong> ${data.delivery.name}</p>
+            <p><strong>Phone:</strong> ${data.delivery.phone}</p>
+            <p><strong>City:</strong> ${data.delivery.city}</p>
+            <p><strong>Address:</strong> ${data.delivery.address}</p>
+            <p><strong>Region:</strong> ${data.delivery.region}</p>
+            <p><strong>Email:</strong> ${data.delivery.email}</p>
+          </div>
+
+          <div class="section">
+            <h2>Payment</h2>
+            <p><strong>Transaction:</strong> ${data.payment.transaction}</p>
+            <p><strong>Currency:</strong> ${data.payment.currency}</p>
+            <p><strong>Provider:</strong> ${data.payment.provider}</p>
+            <p><strong>Amount:</strong> $${data.payment.amount}</p>
+            <p><strong>Bank:</strong> ${data.payment.bank}</p>
+          </div>
+
+          <div class="section">
+            <h2>Items</h2>
+            <div class="items-list">
+              ${data.items.map(item => `
+                <div class="item">
+                  <p><strong>Name:</strong> ${item.name}</p>
+                  <p><strong>Brand:</strong> ${item.brand}</p>
+                  <p><strong>Price:</strong> $${item.price}</p>
+                  <p><strong>Total Price:</strong> $${item.total_price}</p>
+                  <p><strong>Status:</strong> ${item.status}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        }
+    });
+</script>
+</body>
+</html>

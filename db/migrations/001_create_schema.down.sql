@@ -1,0 +1,5 @@
+-- orders table
+DROP TABLE IF NOT EXISTS orders;
+DROP TABLE IF NOT EXISTS deliveries;
+DROP TABLE IF NOT EXISTS payments;
+DROP TABLE IF NOT EXISTS items;
